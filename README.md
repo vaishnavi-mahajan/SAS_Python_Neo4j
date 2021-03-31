@@ -79,7 +79,7 @@ for i in notna_df.index:
     pid = notna_df['Planning_Item_Parent_Name'][i]
 
     # We are creating a node for item_id here.
-    node = Node('Item_ID', name=notna_df['Planning_Item_ID'][i])
+    node = Node('Item_Name', name=notna_df['Planning_Item_Name'][i])
     for col in notna_df.columns:
         # Here we are adding propertities for each item node.
         node[str(col)] = str(notna_df[col][i])
@@ -91,7 +91,7 @@ for i in notna_df.index:
 # Iterating through each item of na_df
 for i in na_df.index:
     # We are creating a node for item_id here.
-    node = Node('Item_ID', name=na_df['Planning_Item_ID'][i])
+    node = Node('Item_Name', name=na_df['Planning_Item_Name'][i])
     for col in na_df.columns:
         # Here we are adding propertities for each item node.
         node[str(col)] = str(na_df[col][i])
