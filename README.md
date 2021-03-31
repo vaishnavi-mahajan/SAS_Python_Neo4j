@@ -5,7 +5,9 @@ import pandas
 
 with open(r'C:\Users\Vaishnavi\OneDrive\Desktop\vai - Copy.txt') as f:
     my=list(f)
+    
     # Replace every SOH by ,NaN,
+    
     words = [w.replace('', ',NaN,') for w in my]
     
     words2= [w.replace('', ',') for w in words]
