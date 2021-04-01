@@ -1,8 +1,8 @@
 # Installation libraries
 
-pip install neo4j
-pip install pandas
-pip install py2neo
+1)pip install neo4j
+2)pip install pandas
+3)pip install py2neo
 
 # Requirements
 Python versions Neo4j versions
