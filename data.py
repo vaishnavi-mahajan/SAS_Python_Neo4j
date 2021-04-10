@@ -1,49 +1,59 @@
-#import pandas to read csv file import pandas
+import re
+import json
 import pandas as pd
-with open(r'C:\Users\Vaishnavi\OneDrive\Desktop\vai - Copy.txt') as f: my=list(f)
 
-# Replace every SOH by ,NaN,
-words = [w.replace('��', ',NaN,') for w in my]
 
-words2= [w.replace('�', ',') for w in words]
+def convert_file(text_file, json_file):
+# Opening text file
+    with open(text_file, "r") as fl:
+        new_file = fl.read()
+# Replacing every SOH symbol     
+        new_file = new_file.replace(r",", "&&")
+        new_file = new_file.replace(r"", ",")
+        new_file = re.sub(r",,,,", ",NaN,NaN,NaN,", new_file)
+        new_file = re.sub(r",,,", ",NaN,NaN,", new_file)
+        new_file = re.sub(r",,", ",NaN,", new_file)
+    with open("csv_file.csv", "w") as fs:
+        fs.write(new_file)
+    df = pd.read_csv("csv_file.csv", header=None, error_bad_lines=False)
+    print(df)
+    header = read_json(json_file)
+    df.fillna('NaN', inplace=True)
+    try:
+# Converting text to csv
+        df.to_csv("csv_file.csv", header=header, index=False)
+    except Exception as err:
+        print(err)
 
-#Replace every two commas(,,) by one comma(,)
-words3 = [w.replace(',,', ',') for w in words2]
+# Reading json file
+def read_json(json_file):
+    with open(json_file, "r") as js:
+        json_read = json.loads(js.read())
+        header_list = []
+        for j_data in json_read:
+# Taking only planning_info table_name from json
+            if j_data["table_name"] == "planning_info":
+# Taking only column_label from planning_info table and replace space between words by underscore
+                under_score = re.sub(
+                    r'\s', '_', j_data['Column_label'])
+                header_list.append(under_score)
+        return header_list
 
-dff = pd.DataFrame(words3)
+# Giving name of text and json file in main
+if __name__ == "__main__":
+    convert_file("text.txt", "plan_schema.json")
 
-# Open the json file
-df = pd.read_json(open(r'C:\Users\Vaishnavi\Downloads\plan_schema.json'))
-
-# Read data fron planning_info table name
-plan2 = df[df['table_name'] == 'planning_info']
-
-#Replace space by underscore(_)
-# rmws = plan2.replace(' ', '_', regex=True)
-
-#Take all the Column_labels from planning_info into list
-li = plan2["Column_label"].tolist()
-
-#Convert dataframe to csv and pass list as column headers
-dff.to_csv("data.csv", header=li, index=False)
-
-#After creating data.csv open the file
-file2 = pd.read_csv(r"C:\Users\Vaishnavi\OneDrive\Desktop\data.csv")
-
-#print to see data.csv
-print(file2)
-
+# Importing py2neo to make connection with neo4j
 from py2neo import Graph
 
 #Establishing connection
-graph = Graph("bolt://54.91.212.220:7687", user="neo4j", password="flesh-writings-assistant")
+graph = Graph("bolt://52.23.248.106:7687", user="neo4j", password="property-dye-labels")
 
 #Deleting all previous states
 graph.delete_all()
 
-#Reading latest.csv using pandas
-import pandas as pd
-df = pd.read_csv(r"C:\Users\Vaishnavi\OneDrive\Desktop\data - Copy.csv")
+#Reading csv_file.csv using pandas
+df = pd.read_csv("csv_file.csv")
 print(df)
 notna_df = df[df['Planning_Item_Parent_Name'].notna()]
 notna_df
@@ -67,25 +77,24 @@ pids = {}
 for pid in unique_pids:
     pids[pid] = Node('Planning_Item_Parent_Name', name=pid)
 
-# ADDING RALATIONSHIPS BETWEEN ITEM NODE AND THEIR PARENT NAME
-
+# Adding relation between row nodes and parent node
 # Iterating through each item of notna_df
 for i in notna_df.index:
     pid = notna_df['Planning_Item_Parent_Name'][i]
 
-    # We are creating a node for item_id here.
+    # We are creating a node for item_name here.
     node = Node('Item_Name', name=notna_df['Planning_Item_Name'][i])
     for col in notna_df.columns:
         # Here we are adding propertities for each item node.
         node[str(col)] = str(notna_df[col][i])
     # Creating relationship between item node and its parent name.
-    graph.create(Relationship(node, "Child Of", pids[pid]))
+    graph.create(Relationship(pids[pid], "Child", node))
 
-# ADDING ITEM NODES INTO GRAPH THAT DO NOT HAVE PARENT.
+# Adding item nodes that do not have parent data
 
 # Iterating through each item of na_df
 for i in na_df.index:
-    # We are creating a node for item_id here.
+    # We are creating a node for item_node here.
     node = Node('Item_Name_without_parent', name=na_df['Planning_Item_Name'][i])
     for col in na_df.columns:
         # Here we are adding propertities for each item node.
