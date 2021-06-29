@@ -16,7 +16,7 @@ Py2neo provides support for the multi-database functionality added in Neo4j 4.0.
 
 If you don't have Neo4j install on your machine then open Neo4j sandbox from https://sandbox.neo4j.com/.
 Click on New project and select blank sandbox.
-Go into connection details you will get username, password and all other thing that you require for establishing connection.
+Go into connection details you will get username, password and all other thing that you require to establish connection.
 
 
 # For establishing connection
